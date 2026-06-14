@@ -104,7 +104,7 @@ class _BaseDataset(ABC):
     @staticmethod
     def _load_simple_text_file(file, time_col=0, id_col=None, remove_negative_ids=False, valid_filter=None,
                                crowd_ignore_filter=None, convert_filter=None, is_zipped=False, zip_file=None,
-                               force_delimiters=None):
+                               force_delimiters=None, time_stride=1):
         """ Function that loads data which is in a commonly used text file format.
         Assumes each det is given by one row of a text file.
         There is no limit to the number or meaning of each column,
@@ -165,7 +165,11 @@ class _BaseDataset(ABC):
                         # Deal with extra trailing spaces at the end of rows
                         if row[-1] in '':
                             row = row[:-1]
-                        timestep = str(int(float(row[time_col])))
+                        # Evaluate only on the time steps matching the stride
+                        int_timestep = int(float(row[time_col]))
+                        if int_timestep % time_stride != 0:
+                            continue
+                        timestep = str(int_timestep)
                         # Read ignore regions separately.
                         is_ignored = False
                         for ignore_key, ignore_value in crowd_ignore_filter.items():
